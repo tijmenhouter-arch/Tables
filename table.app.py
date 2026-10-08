@@ -218,6 +218,7 @@ with st.sidebar:
     st.header("Main settings")
     min_gap = st.slider("Minimum space between tables [m]", 0.50, 1.50, 0.80, 0.05,
                         help="Smaller value = more tables fit in a row.")
+    tables_slot = st.container()
     reach = st.slider("Cable length [m]", 0.5, 4.0, 1.80, 0.1)
 
     st.markdown("**Existing power sockets** (x, y in m)")
