@@ -122,7 +122,7 @@ def build_layout(p):
         caps = [tables_that_fit(r["x_max"] - r["x_min"], p["table_w"], p["min_gap"]) for r in rows]
         for r, n in zip(rows, split_tables(p["n_tables"], caps)):
             r["n"] = n
-        r["x"] = optimize_row(r["n"], r["x_min"], r["x_max"], r["y"], sockets, p["reach"],
+            r["x"] = optimize_row(r["n"], r["x_min"], r["x_max"], r["y"], sockets, p["reach"],
                               p["table_w"], p["table_l"], p["min_gap"], p["max_gap"],
                               p["priority"])
 
