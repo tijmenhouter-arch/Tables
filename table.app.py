@@ -260,7 +260,7 @@ with tables_slot:
 
 params = dict(
     n_tables=int(n_tables_wanted), min_gap=min_gap,
-    min_gap=min_gap, reach=reach, n_new=int(n_new), priority=priority,
+    reach=reach, n_new=int(n_new), priority=priority,
     sockets=sockets_df.dropna().to_numpy(dtype=float).reshape(-1, 2),
     room_l=room_l, room_w=room_w, table_w=table_w, table_l=table_l, max_gap=max_gap,
     lect_d=lect_d, ent_w=ent_w, ent_d=ent_d,
