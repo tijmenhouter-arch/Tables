@@ -287,8 +287,8 @@ else:
               f"{100 * n_powered / max(n_seats, 1):.0f}%", delta_color="off")
     c4.metric("New sockets placed", len(lay["new"]))
 
-    fig = draw(params, lay)
-    st.pyplot(fig, width="stretch")
+    _, plot_col, _ = st.columns([1, 3, 1])
+    plot_col.pyplot(fig, width="stretch")
 
     if len(lay["new"]):
         st.caption("Proposed socket positions: " + " · ".join(
