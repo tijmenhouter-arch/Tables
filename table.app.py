@@ -154,14 +154,6 @@ def draw(p, lay):
     ax.text(p["ent_w"] / 2, p["ent_d"] / 2, "Entrance", va="center", ha="center",
             fontsize=10, color="#333333")
 
-    # Middle path
-    path_h = W - 2 * tl
-    if path_h > 0:
-        ax.add_patch(patches.Rectangle((0, tl), lay["x_end"], path_h, lw=0, fc="#f0f0f0", alpha=0.5))
-        ax.text(lay["x_end"] / 2, tl + path_h / 2,
-                f"Middle path ({lay['x_end'] * path_h:.1f} m²)",
-                va="center", ha="center", fontsize=10, color="#888888")
-
     # Tables + gap markers
     for r in lay["rows"]:
         prev = r["x_min"]
