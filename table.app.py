@@ -26,6 +26,15 @@ def tables_that_fit(span, table_w, min_gap):
     """Max number of tables in a row if every table has >= min_gap in front of it."""
     return max(0, int(np.floor((span + 1e-9) / (table_w + min_gap))))
 
+def split_tables(n_total, caps):
+    """Spread n_total tables over the rows in proportion to each row's capacity."""
+    counts = [0] * len(caps)
+    for _ in range(min(n_total, sum(caps))):
+        open_rows = [i for i, c in enumerate(caps) if counts[i] < c]
+        i = min(open_rows, key=lambda i: counts[i] / caps[i])
+        counts[i] += 1
+    return counts
+
 
 def optimize_row(n, x_min, x_max, y_center, sockets, reach,
                  table_w, table_l, min_gap, max_gap, priority):
@@ -110,7 +119,9 @@ def build_layout(p):
     ]
     sockets = p["sockets"]
     for r in rows:
-        r["n"] = tables_that_fit(r["x_max"] - r["x_min"], p["table_w"], p["min_gap"])
+        caps = [tables_that_fit(r["x_max"] - r["x_min"], p["table_w"], p["min_gap"]) for r in rows]
+        for r, n in zip(rows, split_tables(p["n_tables"], caps)):
+            r["n"] = n
         r["x"] = optimize_row(r["n"], r["x_min"], r["x_max"], r["y"], sockets, p["reach"],
                               p["table_w"], p["table_l"], p["min_gap"], p["max_gap"],
                               p["priority"])
@@ -133,7 +144,7 @@ def build_layout(p):
 # Plot
 # ----------------------------------------------------------------------------
 def draw(p, lay):
-    fig = Figure(figsize=(11, 7))
+    fig = Figure(figsize=(9, 6))
     ax = fig.subplots()
     ax.set_aspect("equal")
     L, W, tw, tl = p["room_l"], p["room_w"], p["table_w"], p["table_l"]
@@ -234,9 +245,21 @@ with st.sidebar:
         lect_d = st.number_input("Lecturer space depth [m]", 0.0, 10.0, 2.15, 0.05)
         st.markdown("**Entrance** (bottom-left corner)")
         ent_w = st.number_input("Entrance width (X) [m]", 0.0, 10.0, 2.20, 0.1)
-        ent_d = st.number_input("Entrance depth (Y) [m]", 0.0, 10.0, 3.50, 0.1)
+        ent_d = st.number_input("Entrance depth (Y) [m]", 0.0, 10.0, 3.75, 0.1)
+
+x_end = room_l - lect_d
+max_tables = (tables_that_fit(x_end, table_w, min_gap)
+              + tables_that_fit(x_end - ent_w, table_w, min_gap))
+with tables_slot:
+    if max_tables > 0:
+        n_tables_wanted = st.number_input(
+            "Number of tables", 1, max_tables, max_tables,
+            help=f"Maximum {max_tables} with the current minimum space between tables.")
+    else:
+        n_tables_wanted = 0
 
 params = dict(
+    n_tables=int(n_tables_wanted), min_gap=min_gap,
     min_gap=min_gap, reach=reach, n_new=int(n_new), priority=priority,
     sockets=sockets_df.dropna().to_numpy(dtype=float).reshape(-1, 2),
     room_l=room_l, room_w=room_w, table_w=table_w, table_l=table_l, max_gap=max_gap,
