@@ -229,7 +229,7 @@ with st.sidebar:
                        "y": st.column_config.NumberColumn("y [m]", format="%.2f")},
     )
 
-    add_new = st.toggle("Add new sockets", value=True)
+    add_new = st.toggle("Add new sockets", value=False)
     n_new = st.number_input("Number of new sockets", 1, 20, 2) if add_new else 0
 
     priority = st.slider("Priority: even spacing ↔ power coverage", 0, 100, 70,
