@@ -288,7 +288,7 @@ else:
     c4.metric("New sockets placed", len(lay["new"]))
 
     fig = draw(params, lay)
-    _, plot_col, _ = st.columns([1, 3, 1])
+    _, plot_col, _ = st.columns([1, 4, 1])
     plot_col.pyplot(fig, width="stretch")
 
     if len(lay["new"]):
