@@ -229,7 +229,7 @@ with st.sidebar:
                        "y": st.column_config.NumberColumn("y [m]", format="%.2f")},
     )
 
-    add_new = st.toggle("Add new sockets", value=False)
+    add_new = st.toggle("Add new sockets", value=True)
     n_new = st.number_input("Number of new sockets", 1, 20, 2) if add_new else 0
 
     priority = st.slider("Priority: even spacing ↔ power coverage", 0, 100, 70,
@@ -251,13 +251,13 @@ with st.sidebar:
 x_end = room_l - lect_d
 max_tables = (tables_that_fit(x_end, table_w, min_gap)
               + tables_that_fit(x_end - ent_w, table_w, min_gap))
+
 with tables_slot:
-    if max_tables > 0:
-        n_tables_wanted = st.number_input(
-            "Number of tables", 1, max_tables, max_tables,
-            help=f"Maximum {max_tables} with the current minimum space between tables.")
-    else:
-        n_tables_wanted = 0
+    use_max = st.checkbox("Use maximum number of tables", value=False)
+    n_tables_input = st.number_input("Number of tables", 1, 100, 11, disabled=use_max)
+    n_tables_wanted = max_tables if use_max else min(n_tables_input, max_tables)
+    if not use_max and n_tables_input > max_tables:
+        st.caption(f"Only {max_tables} fit with the current minimum space, so {max_tables} are used.")
 
 params = dict(
     n_tables=int(n_tables_wanted), min_gap=min_gap,
@@ -288,7 +288,7 @@ else:
     c4.metric("New sockets placed", len(lay["new"]))
 
     fig = draw(params, lay)
-    _, plot_col, _ = st.columns([1, 6, 1])
+    _, plot_col, _ = st.columns([1, 4, 1])
     plot_col.pyplot(fig, width="stretch")
 
     if len(lay["new"]):
