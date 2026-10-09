@@ -251,7 +251,7 @@ with st.sidebar:
 
     st.markdown("**Existing power sockets** (x, y in m)")
     sockets_df = st.data_editor(
-        pd.DataFrame({"x": [2.66, 1,72, 9.83, 10], "y": [0.0, 7.5, 0.0, 7.5]}),
+        pd.DataFrame({"x": [2.66, 1.72, 9.83, 10], "y": [0.0, 7.5, 0.0, 7.5]}),
         num_rows="dynamic", hide_index=True, width="stretch",
         column_config={"x": st.column_config.NumberColumn("x [m]", format="%.2f"),
                        "y": st.column_config.NumberColumn("y [m]", format="%.2f")},
