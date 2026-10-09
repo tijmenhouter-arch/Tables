@@ -11,6 +11,18 @@ SEATS_PER_TABLE = 4
 SEAT_EDGE_MARGIN = 0.35  # m, first/last seat from the table's short edge
 WALL_STEP = 0.10         # m, resolution of candidate positions for new sockets
 
+# Existing layout of Arch hall R
+ORIGINAL_LAYOUT = dict(
+    table_w=0.70,   # table size in the existing layout
+    table_l=2.85,
+    rows=[
+        # y = centre line of the row, x = left edge of each table in that row,
+        # x_min = where the row starts (only used for the first gap arrow)
+        dict(y=6.075, x_min=0.0, x=[2.12, 3.61, 5.07, 6.57, 8.03, 9.34]),
+        dict(y=1.425, x_min=2.2, x=[2.87, 4.30, 5.79, 7.16, 9.01]),
+    ],
+)
+
 
 # ----------------------------------------------------------------------------
 # Geometry & optimisation
@@ -114,8 +126,8 @@ def propose_new_sockets(seats, existing, room_l, room_w, reach, n_new):
 def build_layout(p):
     x_end = p["room_l"] - p["lect_d"]  # tables stop where the lecturer space starts
     rows = [
-        dict(y=p["room_w"] - p["table_l"] / 2, x_min=0.0, x_max=x_end),    # north row
-        dict(y=p["table_l"] / 2, x_min=p["ent_w"], x_max=x_end),           # south row
+        dict(y=p["room_w"] - p["table_l"] / 2, x_min=0.0, x_max=10),    # north row
+        dict(y=p["table_l"] / 2, x_min=p["ent_w"], x_max=9.76),           # south row
     ]
     sockets = p["sockets"]
     for r in rows:
@@ -139,6 +151,20 @@ def build_layout(p):
         powered = np.zeros(len(seats), dtype=bool)
     return dict(rows=rows, seats=seats, powered=powered, new=new, x_end=x_end)
 
+def build_original_layout(p, x_end):
+    """Existing layout of the hall, scored against the existing sockets only."""
+    o = ORIGINAL_LAYOUT
+    rows = [dict(y=r["y"], x_min=r["x_min"], x=list(r["x"]), n=len(r["x"])) for r in o["rows"]]
+    blocks = [seats_for_table(x, r["y"], o["table_w"], o["table_l"])
+              for r in rows for x in r["x"]]
+    seats = np.vstack(blocks) if blocks else np.empty((0, 2))
+    sockets = p["sockets"]
+    if len(seats) and len(sockets):
+        powered = np.linalg.norm(seats[:, None, :] - sockets[None, :, :],
+                                 axis=2).min(axis=1) <= p["reach"]
+    else:
+        powered = np.zeros(len(seats), dtype=bool)
+    return dict(rows=rows, seats=seats, powered=powered, new=np.empty((0, 2)), x_end=x_end)
 
 # ----------------------------------------------------------------------------
 # Plot
@@ -218,6 +244,8 @@ with st.sidebar:
     st.header("Main settings")
     min_gap = st.slider("Minimum space between tables [m]", 0.50, 1.50, 0.80, 0.05,
                         help="Smaller value = more tables fit in a row.")
+    
+    show_original = st.toggle("Original layout Arch hall R", value=True)
     tables_slot = st.container()
     reach = st.slider("Cable length [m]", 0.5, 4.0, 1.80, 0.1)
 
@@ -231,7 +259,7 @@ with st.sidebar:
 
     add_new = st.toggle("Add new sockets", value=False)
     n_new = st.number_input("Number of new sockets", 1, 20, 2) if add_new else 0
-
+    
     priority = st.slider("Priority: even spacing ↔ power coverage", 0, 100, 70,
                          help="0 = spread tables evenly, ignore sockets. "
                               "100 = move tables towards sockets, ignore spacing.") / 100
@@ -288,8 +316,31 @@ else:
     c4.metric("New sockets placed", len(lay["new"]))
 
     fig = draw(params, lay)
+    st.subheader("Optimised layout")
     _, plot_col, _ = st.columns([1, 4, 1])
     plot_col.pyplot(fig, width="stretch")
+    show_original = st.toggle("Original layout Arch hall R", value=True)
+    if show_original:
+        st.divider()
+        st.subheader("Original layout: Arch hall R")
+        orig = build_original_layout(params, lay["x_end"])
+        p_orig = {**params, "table_w": ORIGINAL_LAYOUT["table_w"], "table_l": ORIGINAL_LAYOUT["table_l"]}
+        o_tables = sum(r["n"] for r in orig["rows"])
+        o_seats = len(orig["seats"])
+        o_powered = int(orig["powered"].sum())
+        pct_orig = 100 * o_powered / max(o_seats, 1)
+        pct_opt = 100 * n_powered / max(n_seats, 1)
+    
+        orig_plot, orig_info = st.columns([3, 2])
+        orig_plot.pyplot(draw(p_orig, orig), width="stretch")
+        with orig_info:
+            st.metric("Tables", o_tables, int(n_tables - o_tables), delta_color="off")
+            st.metric("Seats", o_seats, int(n_seats - o_seats), delta_color="off")
+            st.metric("Powered seats", f"{o_powered} / {o_seats}", f"{pct_orig:.0f}%", delta_color="off")
+            st.metric("Powered seats, optimised vs original", f"{pct_opt:.0f}%",
+                      f"{pct_opt - pct_orig:+.0f} percentage points")
+            st.caption("Original layout is scored with the existing sockets only. "
+                       "Differences next to Tables and Seats are optimised minus original.")
 
     if len(lay["new"]):
         st.caption("Proposed socket positions: " + " · ".join(
