@@ -271,7 +271,7 @@ with st.sidebar:
         table_l = st.number_input("Table length [m]", 1.0, 5.0, 2.85, 0.05)
         max_gap = st.number_input("Maximum space between tables [m]", 0.5, 5.0, 1.50, 0.1)
         st.markdown("**Lecturer space** (full width, at the far end)")
-        lect_d = st.number_input("Lecturer space depth [m]", 0.0, 10.0, 2.15, 0.05)
+        lect_d = st.number_input("Lecturer space depth [m]", 0.0, 10.0, 1.96, 0.05)
         st.markdown("**Entrance** (bottom-left corner)")
         ent_w = st.number_input("Entrance width (X) [m]", 0.0, 10.0, 2.20, 0.1)
         ent_d = st.number_input("Entrance depth (Y) [m]", 0.0, 10.0, 3.75, 0.1)
