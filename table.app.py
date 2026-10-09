@@ -309,7 +309,7 @@ else:
     n_powered = int(lay["powered"].sum())
 
     st.subheader("Optimised layout")
-    plot_col, info_col = st.columns(PLOT_COLUMNS)
+    plot_col, info_col = st.columns([3,2])
     plot_col.pyplot(draw(params, lay), width="stretch")
     with info_col:
         st.metric("Tables", n_tables)
