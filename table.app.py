@@ -308,17 +308,17 @@ else:
     n_seats = len(lay["seats"])
     n_powered = int(lay["powered"].sum())
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Tables", n_tables)
-    c2.metric("Seats", n_seats)
-    c3.metric("Powered seats", f"{n_powered} / {n_seats}",
-              f"{100 * n_powered / max(n_seats, 1):.0f}%", delta_color="off")
-    c4.metric("New sockets placed", len(lay["new"]))
-
     st.subheader("Optimised layout")
-    plot_col, info_col = st.columns([3, 2])
+    plot_col, info_col = st.columns(PLOT_COLUMNS)
     plot_col.pyplot(draw(params, lay), width="stretch")
-    show_original = st.toggle("Original layout Arch hall R", value=True)
+    with info_col:
+        st.metric("Tables", n_tables)
+        st.metric("Seats", n_seats)
+        st.metric("Powered seats", f"{n_powered} / {n_seats}",
+                  f"{100 * n_powered / max(n_seats, 1):.0f}%", delta_color="off")
+        st.metric("New sockets placed", len(lay["new"]))
+        for i, (x, y) in enumerate(lay["new"], 1):
+            st.metric(f"New socket #{i}", f"x {x:.2f} · y {y:.2f}")
     if show_original:
         st.divider()
         st.subheader("Original layout: Arch hall R")
